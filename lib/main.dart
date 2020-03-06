@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:grocerylist/blocs/Item_bloc.dart';
+import 'package:grocerylist/data/bloc_provider.dart';
+import 'package:grocerylist/pages/home_page.dart';
+import 'package:grocerylist/pages/items_page.dart';
 
 void main() => runApp(MyApp());
 
@@ -10,7 +14,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Grocery List'),
+      home: BlocProvider(child: ItemsPage(), bloc: ItemsBloc(0)),
     );
   }
 }
