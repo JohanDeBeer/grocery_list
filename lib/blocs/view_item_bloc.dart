@@ -32,11 +32,11 @@ class ViewItemBloc implements BlocBase {
   }
 
   void _handleSaveItem(Item item) async {
-    await DBProvider.db.updateItem(item);
+    await Item.updateItem(item);
   }
 
   void _handleDeleteItem(int id) async {
-    await DBProvider.db.deleteItem(id);
+    await Item.deleteItem(id);
 
     _inDeleted.add(true);
   }

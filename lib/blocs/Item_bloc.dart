@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:grocerylist/data/bloc_provider.dart';
-import 'package:grocerylist/data/database.dart';
 import 'package:grocerylist/models/Item_model.dart';
 
 class ItemsBloc implements BlocBase {
@@ -28,12 +27,12 @@ class ItemsBloc implements BlocBase {
   }
 
   void getItems(int listID) async {
-    List<Item> items = await DBProvider.db.getItems();
+    List<Item> items = await Item.getItems(listID);
     _inItems.add(items);
   }
 
   void _handleAddItem(Item item) async {
-    await DBProvider.db.newItem(item);
+    await Item.newItem(item);
     getItems(item.listID);
   }
 }

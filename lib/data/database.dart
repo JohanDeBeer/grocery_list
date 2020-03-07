@@ -24,7 +24,7 @@ class DBProvider {
     Directory docDir = await getApplicationDocumentsDirectory();
     String path = join(docDir.path, 'app.db');
 
-    return await openDatabase(path, version: 2, onOpen: (db) async {},
+    return await openDatabase(path, version: 1, onOpen: (db) async {},
         onCreate: (Database db, int version) async {
       await db.execute('''
       CREATE TABLE item(
@@ -35,43 +35,19 @@ class DBProvider {
         listID INTEGER
       )
       ''');
+      await db.execute('''
+      CREATE TABLE shopList(
+        id INTEGER PRIMARY KEY,
+        name TEXT DEFAULT '',
+        isDone BIT DEFAULT 0
+      )
+      ''');
+      await db.execute('''
+      CREATE TABLE pin(
+        id INTEGER PRIMARY KEY,
+        value TEXT
+      )
+      ''');
     });
-  }
-
-  newItem(Item item) async {
-    final db = await database;
-    var res = await db.insert('item', item.toJson());
-
-    return res;
-  }
-
-  getItem(int id) async {
-    final db = await database;
-    var res = await db.query('item', where: 'id = ?', whereArgs: [id]);
-
-    return res.isNotEmpty ? Item.fromJson(res.first) : null;
-  }
-
-  getItems() async {
-    final db = await database;
-    var res = await db.query('item');
-    List<Item> items =
-        res.isNotEmpty ? res.map((item) => Item.fromJson(item)).toList() : [];
-
-    return items;
-  }
-
-  updateItem(Item item) async {
-    final db = await database;
-    var res = await db
-        .update('item', item.toJson(), where: 'id = ?', whereArgs: [item.id]);
-
-    return res;
-  }
-
-  deleteItem(int id) async {
-    final db = await database;
-
-    db.delete('item', where: 'id = ?', whereArgs: [id]);
   }
 }

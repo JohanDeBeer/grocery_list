@@ -1,49 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:grocerylist/blocs/Item_bloc.dart';
-import 'package:grocerylist/blocs/view_item_bloc.dart';
+import 'package:grocerylist/blocs/shop_list_bloc.dart';
 import 'package:grocerylist/data/bloc_provider.dart';
-import 'package:grocerylist/models/Item_model.dart';
-import 'package:grocerylist/pages/item_view_page.dart';
+import 'package:grocerylist/models/shop_list_model.dart';
+import 'package:grocerylist/pages/items_page.dart';
 
-class ItemsPage extends StatefulWidget {
-  ItemsPage({this.listID});
-
-  final int listID;
-
+class ShopListsPage extends StatefulWidget {
   @override
-  _ItemsPageState createState() => _ItemsPageState();
+  _ShopListsPageState createState() => _ShopListsPageState();
 }
 
-class _ItemsPageState extends State<ItemsPage> {
-  ItemsBloc _itemsBloc;
+class _ShopListsPageState extends State<ShopListsPage> {
+  ShopListsBloc _shopListsBloc;
 
   @override
   void initState() {
-    _itemsBloc = BlocProvider.of<ItemsBloc>(context);
+    _shopListsBloc = BlocProvider.of<ShopListsBloc>(context);
     super.initState();
   }
 
-  void _addItem() async {
-    Item item = new Item(
-      listID: widget.listID,
+  void _addShopList() async {
+    ShopList shopList = new ShopList(
       name: 'johan',
     );
-    _itemsBloc.inAddItem.add(item);
+    _shopListsBloc.inAddShopList.add(shopList);
   }
 
-  void _navigateToItem(Item item) async {
+  void _navigateToItemList(ShopList shopList) async {
     bool update = await Navigator.of(context).push(
       MaterialPageRoute(
           builder: (context) => BlocProvider(
-                bloc: ViewItemBloc(),
-                child: ViewItemPage(
-                  item: item,
+                bloc: ItemsBloc(shopList.id),
+                child: ItemsPage(
+                  listID: shopList.id,
                 ),
               )),
     );
 
     if (update != null) {
-      _itemsBloc.getItems(widget.listID);
+      _shopListsBloc.getShopLists();
     }
   }
 
@@ -53,29 +48,30 @@ class _ItemsPageState extends State<ItemsPage> {
       appBar: AppBar(
         title: Text(''),
       ),
-      body: StreamBuilder<List<Item>>(
-          stream: _itemsBloc.items,
+      body: StreamBuilder<List<ShopList>>(
+          stream: _shopListsBloc.shopLists,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               if (snapshot.data.length == 0) {
-                return Text('No Items');
+                return Text('No ShopLists');
               }
 
-              List<Item> items = snapshot.data;
+              List<ShopList> shopLists = snapshot.data;
 
               return ListView.builder(
                 itemCount: snapshot.data.length,
                 itemBuilder: (BuildContext context, int index) {
-                  Item item = items[index];
+                  ShopList shopList = shopLists[index];
 
                   return Card(
                     child: ListTile(
                       onTap: () {
-                        _navigateToItem(item);
+                        _navigateToItemList(shopList);
                       },
                       title: Text(
-                        'Item ${item.name.toString()}',
+                        'ShopList ${shopList.name.toString()}',
                       ),
+                      subtitle: Text('id = ${shopList.id.toString()}'),
                     ),
                   );
                 },
@@ -86,7 +82,7 @@ class _ItemsPageState extends State<ItemsPage> {
             );
           }),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addItem,
+        onPressed: _addShopList,
         child: Icon(Icons.add),
       ),
     );
