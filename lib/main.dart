@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:grocerylist/models/pin_model.dart';
-import 'package:grocerylist/pages/pin_entry_page.dart';
+import 'package:grocerylist/blocs/pin_bloc.dart';
+import 'package:grocerylist/data/bloc_provider.dart';
+import 'package:grocerylist/data/root.dart';
 
 void main() => runApp(MyApp());
 
@@ -8,11 +9,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Grocery List',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.teal,
       ),
-      home: PinEntryPage(false),
+      home: BlocProvider(child: Root(), bloc: PinsBloc()),
     );
   }
 }

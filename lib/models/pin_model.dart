@@ -22,6 +22,14 @@ class Pin {
     return res;
   }
 
+  static getPins() async {
+    final db = await DBProvider.db.database;
+    var res = await db.query('pin');
+    List<Pin> pins =
+    res.isNotEmpty ? res.map((item) => Pin.fromJson(item)).toList() : [];
+    return pins;
+  }
+
   static validatePin(String pin) {
     bool valid = RegExp(r"^(?!(.)\1{3})(?!19|20)\d{4}$").hasMatch(pin);
     int numbers = "01234567890".indexOf(pin);
