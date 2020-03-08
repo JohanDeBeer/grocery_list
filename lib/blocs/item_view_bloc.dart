@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:grocerylist/data/bloc_provider.dart';
-import 'package:grocerylist/data/database.dart';
 import 'package:grocerylist/models/Item_model.dart';
 
 class ViewItemBloc implements BlocBase {

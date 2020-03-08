@@ -16,7 +16,6 @@ class PinEntryPage extends StatefulWidget {
 
 class _PinEntryPageState extends State<PinEntryPage> {
   List<String> _pin = new List();
-  bool _loginFailed = false;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +24,7 @@ class _PinEntryPageState extends State<PinEntryPage> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
           Text(
-            'Please enter your pin',
+            'Please ${widget.firstLogin ? 'Create' : 'Enter'} your pin',
             style: TextStyle(fontSize: 30),
           ),
           Row(
@@ -42,37 +41,88 @@ class _PinEntryPageState extends State<PinEntryPage> {
     );
   }
 
+  void showInSnackBar(String title, String subtitle) {
+    Scaffold.of(context).showSnackBar(
+      SnackBar(
+          backgroundColor: Colors.redAccent,
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text(
+                title,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                ),
+              ),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                ),
+              ),
+            ],
+          )),
+    );
+  }
+
   void _submit() async {
     String pin = '';
     _pin.forEach((item) {
       pin = '$pin$item';
     });
     if (widget.firstLogin) {
-      if (Pin.validatePin(pin)) {
-        await Pin.newPin(Pin(value: pin));
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) {
-              return BlocProvider(
-                child: ShopListsPage(),
-                bloc: ShopListsBloc(),
-              );
-            },
-          ),
-        );
-      } else {
-        print("The Pin Is INVALID");
-      }
+      _createAccount(pin);
     } else {
-      if (await Pin.authPin(pin)) {
-        print("login");
-      } else {
-        setState(() {
-          _loginFailed = true;
-          _pin.clear();
-        });
-      }
+      _login(pin);
     }
+  }
+
+  void _createAccount(String pin) async {
+    if (Pin.validatePin(pin)) {
+      await Pin.newPin(Pin(value: pin));
+      _nextPage();
+    } else {
+      showInSnackBar(
+          "The Pin Is INVALID", "Do not use repeating or consecutive numbers");
+      setState(() {
+        _pin.clear();
+      });
+    }
+  }
+
+  void _login(String pin) async {
+    if (await Pin.authPin(pin)) {
+      _loginSuccess();
+    } else {
+      _loginFail();
+    }
+  }
+
+  void _loginSuccess() {
+    _nextPage();
+  }
+
+  void _nextPage() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) {
+          return BlocProvider(
+            child: ShopListsPage(),
+            bloc: ShopListsBloc(),
+          );
+        },
+      ),
+    );
+  }
+
+  void _loginFail() {
+    showInSnackBar("Pin Incorrect", "Please try again");
+    setState(() {
+      _pin.clear();
+    });
   }
 
   void _buttonPress(val) {
@@ -119,7 +169,7 @@ class _PinEntryPageState extends State<PinEntryPage> {
                 )
               : Icon(
                   Icons.check_box_outline_blank,
-                  color: _loginFailed ? Colors.red : Colors.blueGrey,
+            color: Colors.blueGrey,
                   size: 40,
                 ),
         );

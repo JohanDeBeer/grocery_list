@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:grocerylist/blocs/Item_bloc.dart';
+import 'package:grocerylist/blocs/item_bloc.dart';
 import 'package:grocerylist/blocs/shop_list_bloc.dart';
 import 'package:grocerylist/data/bloc_provider.dart';
 import 'package:grocerylist/models/shop_list_model.dart';
 import 'package:grocerylist/pages/items_page.dart';
+import 'package:grocerylist/widgets/shop_list_dialog.dart';
 
 class ShopListsPage extends StatefulWidget {
   @override
@@ -12,6 +13,7 @@ class ShopListsPage extends StatefulWidget {
 
 class _ShopListsPageState extends State<ShopListsPage> {
   ShopListsBloc _shopListsBloc;
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -19,11 +21,35 @@ class _ShopListsPageState extends State<ShopListsPage> {
     super.initState();
   }
 
-  void _addShopList() async {
-    ShopList shopList = new ShopList(
-      name: 'johan',
-    );
+  void _editShopList(ShopList shopList) async {
+    await showDialog(
+        context: context,
+        builder: (context) {
+          return ShopListDialog(
+            onSave: _updateShopList,
+            shopList: shopList,
+          );
+        });
+  }
+
+  void _createShopList() async {
+    await showDialog(
+        context: context,
+        builder: (context) {
+          return ShopListDialog(
+            shopList: ShopList(),
+            onSave: _addShopList,
+          );
+        });
+  }
+
+  void _addShopList(ShopList shopList) async {
     _shopListsBloc.inAddShopList.add(shopList);
+  }
+
+  void _updateShopList(ShopList shopList) async {
+    ShopList.updateShopList(shopList);
+    _shopListsBloc.getShopLists();
   }
 
   void _navigateToItemList(ShopList shopList) async {
@@ -65,13 +91,23 @@ class _ShopListsPageState extends State<ShopListsPage> {
 
                   return Card(
                     child: ListTile(
+                      //dense: true,
+                      trailing: IconButton(
+                        icon: Icon(
+                          Icons.edit,
+                          color: Colors.teal,
+                        ),
+                        onPressed: () {
+                          _editShopList(shopList);
+                        },
+                      ),
                       onTap: () {
                         _navigateToItemList(shopList);
                       },
                       title: Text(
-                        'ShopList ${shopList.name.toString()}',
+                        '${shopList.name.toString()}',
                       ),
-                      subtitle: Text('id = ${shopList.id.toString()}'),
+                      //subtitle: Text('id = ${shopList.id.toString()}'),
                     ),
                   );
                 },
@@ -82,7 +118,7 @@ class _ShopListsPageState extends State<ShopListsPage> {
             );
           }),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addShopList,
+        onPressed: _createShopList,
         child: Icon(Icons.add),
       ),
     );

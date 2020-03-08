@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:grocerylist/blocs/Item_bloc.dart';
-import 'package:grocerylist/blocs/view_item_bloc.dart';
+import 'package:grocerylist/blocs/item_bloc.dart';
+import 'package:grocerylist/blocs/item_view_bloc.dart';
 import 'package:grocerylist/data/bloc_provider.dart';
 import 'package:grocerylist/models/Item_model.dart';
 import 'package:grocerylist/pages/item_view_page.dart';
