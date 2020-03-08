@@ -4,7 +4,7 @@ class Item {
   int id;
   String name;
   int quantity;
-  bool isBought;
+  int isBought;
   int listID;
 
   Item({

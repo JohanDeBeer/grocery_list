@@ -3,7 +3,8 @@ import 'package:grocerylist/data/database.dart';
 class ShopList {
   int id;
   String name;
-  bool isDone;
+  int isDone;
+  int itemCount;
 
   ShopList({
     this.id,
@@ -39,7 +40,7 @@ class ShopList {
 
   static getShopLists() async {
     final db = await DBProvider.db.database;
-    var res = await db.query('shopList');
+    var res = await db.query('shopList', orderBy: 'isDone');
     List<ShopList> shopLists = res.isNotEmpty
         ? res.map((shopList) => ShopList.fromJson(shopList)).toList()
         : [];

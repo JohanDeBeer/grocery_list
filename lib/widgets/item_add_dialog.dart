@@ -1,41 +1,35 @@
 import 'package:flutter/material.dart';
-import 'package:grocerylist/models/shop_list_model.dart';
+import 'package:grocerylist/models/Item_model.dart';
 
-class ShopListDialog extends StatefulWidget {
-  ShopListDialog({
-    this.shopList,
-    this.onSave,
-  });
+class ItemAddDialog extends StatefulWidget {
+  ItemAddDialog({this.onSave, this.item});
 
-  final ShopList shopList;
-  final Function onSave;
+  final onSave;
+  final Item item;
 
   @override
-  _ShopListDialogState createState() => _ShopListDialogState();
+  _ItemAddDialogState createState() => _ItemAddDialogState();
 }
 
-class _ShopListDialogState extends State<ShopListDialog> {
+class _ItemAddDialogState extends State<ItemAddDialog> {
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
-    bool isNew = widget.shopList.name == null ? true : false;
     return AlertDialog(
-      title: Text("${isNew ? "New" : "Edit"} Grocery List"),
+      title: Text("Add New Item"),
       content: Form(
         key: _formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             TextFormField(
-              maxLines: 1,
-              initialValue: widget.shopList.name,
               validator: (val) {
                 return val.isEmpty ? "Please enter a name" : null;
               },
               onSaved: (val) {
-                widget.shopList.name = val;
-                widget.onSave(widget.shopList);
+                widget.item.name = val;
+                widget.onSave(widget.item);
               },
             ),
           ],

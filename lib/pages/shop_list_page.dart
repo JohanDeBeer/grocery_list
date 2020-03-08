@@ -11,9 +11,10 @@ class ShopListsPage extends StatefulWidget {
   _ShopListsPageState createState() => _ShopListsPageState();
 }
 
+enum _ShopListMenuItems { edit, delete }
+
 class _ShopListsPageState extends State<ShopListsPage> {
   ShopListsBloc _shopListsBloc;
-  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -43,6 +44,34 @@ class _ShopListsPageState extends State<ShopListsPage> {
         });
   }
 
+  void _showDeleteDialog(ShopList shopList) async {
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Delete ${shopList.name}?"),
+          content: Text("This will remove the list and all containing Items"),
+          actions: <Widget>[
+            FlatButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("Cancel"),
+            ),
+            RaisedButton(
+              color: Colors.redAccent,
+              onPressed: () {
+                _deleteShopList(shopList);
+                Navigator.pop(context);
+              },
+              child: Text("Delete"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _addShopList(ShopList shopList) async {
     _shopListsBloc.inAddShopList.add(shopList);
   }
@@ -52,19 +81,27 @@ class _ShopListsPageState extends State<ShopListsPage> {
     _shopListsBloc.getShopLists();
   }
 
+  void _deleteShopList(ShopList shopList) async {
+    ShopList.deleteShopList(shopList.id);
+    _shopListsBloc.getShopLists();
+  }
+
   void _navigateToItemList(ShopList shopList) async {
     bool update = await Navigator.of(context).push(
       MaterialPageRoute(
           builder: (context) => BlocProvider(
                 bloc: ItemsBloc(shopList.id),
                 child: ItemsPage(
-                  listID: shopList.id,
+                  shopList: shopList,
                 ),
               )),
     );
 
-    if (update != null) {
-      _shopListsBloc.getShopLists();
+    if (update == true) {
+      print(true);
+      shopList.isDone = 1;
+      ShopList.updateShopList(shopList);
+      //_shopListsBloc.getShopLists();
     }
   }
 
@@ -72,7 +109,7 @@ class _ShopListsPageState extends State<ShopListsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(''),
+        title: Text('Grocery List'),
       ),
       body: StreamBuilder<List<ShopList>>(
           stream: _shopListsBloc.shopLists,
@@ -91,15 +128,26 @@ class _ShopListsPageState extends State<ShopListsPage> {
 
                   return Card(
                     child: ListTile(
-                      //dense: true,
-                      trailing: IconButton(
-                        icon: Icon(
-                          Icons.edit,
-                          color: Colors.teal,
-                        ),
-                        onPressed: () {
-                          _editShopList(shopList);
+                      enabled: shopList.isDone != 1,
+                      trailing: PopupMenuButton(
+                        onSelected: (_ShopListMenuItems res) {
+                          if (res == _ShopListMenuItems.edit) {
+                            _editShopList(shopList);
+                          } else {
+                            _showDeleteDialog(shopList);
+                          }
                         },
+                        itemBuilder: (context) =>
+                        <PopupMenuEntry<_ShopListMenuItems>>[
+                          const PopupMenuItem(
+                            child: Text("Edit"),
+                            value: _ShopListMenuItems.edit,
+                          ),
+                          const PopupMenuItem(
+                            child: Text("Delete"),
+                            value: _ShopListMenuItems.delete,
+                          ),
+                        ],
                       ),
                       onTap: () {
                         _navigateToItemList(shopList);

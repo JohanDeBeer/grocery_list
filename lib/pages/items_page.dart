@@ -1,14 +1,17 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:grocerylist/blocs/item_bloc.dart';
 import 'package:grocerylist/blocs/item_view_bloc.dart';
 import 'package:grocerylist/data/bloc_provider.dart';
 import 'package:grocerylist/models/Item_model.dart';
+import 'package:grocerylist/models/shop_list_model.dart';
 import 'package:grocerylist/pages/item_view_page.dart';
+import 'package:grocerylist/widgets/item_add_dialog.dart';
 
 class ItemsPage extends StatefulWidget {
-  ItemsPage({this.listID});
+  ItemsPage({this.shopList});
 
-  final int listID;
+  final ShopList shopList;
 
   @override
   _ItemsPageState createState() => _ItemsPageState();
@@ -16,6 +19,8 @@ class ItemsPage extends StatefulWidget {
 
 class _ItemsPageState extends State<ItemsPage> {
   ItemsBloc _itemsBloc;
+  int itemCount = 0;
+  int boughtItemCount = 0;
 
   @override
   void initState() {
@@ -23,35 +28,44 @@ class _ItemsPageState extends State<ItemsPage> {
     super.initState();
   }
 
-  void _addItem() async {
-    Item item = new Item(
-      listID: widget.listID,
-      name: 'johan',
-    );
-    _itemsBloc.inAddItem.add(item);
-  }
-
   void _navigateToItem(Item item) async {
     bool update = await Navigator.of(context).push(
       MaterialPageRoute(
           builder: (context) => BlocProvider(
-                bloc: ViewItemBloc(),
-                child: ViewItemPage(
-                  item: item,
-                ),
-              )),
+            bloc: ViewItemBloc(),
+            child: ViewItemPage(
+              item: item,
+            ),
+          )),
     );
-
     if (update != null) {
-      _itemsBloc.getItems(widget.listID);
+      _itemsBloc.getItems(widget.shopList.id);
     }
+  }
+
+  _addNewItem(Item item) async {
+    _itemsBloc.inAddItem.add(item);
+  }
+
+  _addNewItemDialog() async {
+    await showDialog(
+        context: context,
+        builder: (context) {
+          return ItemAddDialog(
+            item: Item(
+              quantity: 1,
+              listID: widget.shopList.id,
+            ),
+            onSave: _addNewItem,
+          );
+        });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(''),
+        title: Text(widget.shopList.name.toString()),
       ),
       body: StreamBuilder<List<Item>>(
           stream: _itemsBloc.items,
@@ -62,7 +76,7 @@ class _ItemsPageState extends State<ItemsPage> {
               }
 
               List<Item> items = snapshot.data;
-
+              itemCount = items.length;
               return ListView.builder(
                 itemCount: snapshot.data.length,
                 itemBuilder: (BuildContext context, int index) {
@@ -70,11 +84,34 @@ class _ItemsPageState extends State<ItemsPage> {
 
                   return Card(
                     child: ListTile(
+                      enabled: item.isBought != 1,
                       onTap: () {
                         _navigateToItem(item);
                       },
                       title: Text(
-                        'Item ${item.name.toString()}',
+                        item.name.toString(),
+                      ),
+                      subtitle: Text('Quantity: ${item.quantity.toString()}'),
+                      trailing: FlatButton(
+                        onPressed: () {
+                          if (item.isBought != 1) {
+                            item.isBought = 1;
+                            boughtItemCount++;
+                            Item.updateItem(item);
+                          } else {
+                            item.isBought = 0;
+                            boughtItemCount--;
+                            Item.updateItem(item);
+                          }
+                          _itemsBloc.getItems(widget.shopList.id);
+                          if (itemCount == boughtItemCount) {
+                            Navigator.of(context).pop(true);
+                          }
+                        },
+                        child: Text(
+                          item.isBought != 1 ? "Buy" : "Undo",
+                          style: TextStyle(color: Colors.teal),
+                        ),
                       ),
                     ),
                   );
@@ -86,7 +123,7 @@ class _ItemsPageState extends State<ItemsPage> {
             );
           }),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addItem,
+        onPressed: _addNewItemDialog,
         child: Icon(Icons.add),
       ),
     );

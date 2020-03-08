@@ -85,8 +85,8 @@ class _PinEntryPageState extends State<PinEntryPage> {
       await Pin.newPin(Pin(value: pin));
       _nextPage();
     } else {
-      showInSnackBar(
-          "The Pin Is INVALID", "Do not use repeating or consecutive numbers");
+      showInSnackBar("The Pin Is INVALID",
+          "Do not use birth year, repeating or consecutive numbers");
       setState(() {
         _pin.clear();
       });
@@ -127,7 +127,13 @@ class _PinEntryPageState extends State<PinEntryPage> {
 
   void _buttonPress(val) {
     setState(() {
-      if (val != "del") {
+      if (val == "del") {
+        if (_pin.length > 0) {
+          _pin.removeLast();
+        }
+      } else if (val == 'clear') {
+        _pin.clear();
+      } else {
         if (_pin.length < 3) {
           _pin.add(val);
         } else if (_pin.length == 3) {
@@ -135,10 +141,6 @@ class _PinEntryPageState extends State<PinEntryPage> {
           _submit();
         } else {
           print('Full');
-        }
-      } else {
-        if (_pin.length > 0) {
-          _pin.removeLast();
         }
       }
     });

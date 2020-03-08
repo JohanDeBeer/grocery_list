@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:grocerylist/blocs/item_view_bloc.dart';
 import 'package:grocerylist/data/bloc_provider.dart';
 import 'package:grocerylist/models/Item_model.dart';
@@ -29,22 +31,14 @@ class _ViewItemPageState extends State<ViewItemPage> {
     if (_key.currentState.validate()) {
       _key.currentState.save();
       _viewItemBloc.inSaveItem.add(widget.item);
+      Navigator.of(context).pop(true);
     }
   }
 
   void _deleteItem() {
-    // Add the item id to the delete item stream. This triggers the function
-    // we set in the listener.
     _viewItemBloc.inDeleteItem.add(widget.item.id);
-
-    // Wait for `deleted` to be set before popping back to the main page. This guarantees there's no
-    // mismatch between what's stored in the database and what's being displayed on the page.
-    // This is usually only an issue with more database heavy actions, but it's a good thing to
-    // add regardless.
     _viewItemBloc.deleted.listen((deleted) {
       if (deleted) {
-        // Pop and return true to let the main page know that a item was deleted and that
-        // it has to update the item stream.
         Navigator.of(context).pop(true);
       }
     });
@@ -54,50 +48,84 @@ class _ViewItemPageState extends State<ViewItemPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Item ' + widget.item.id.toString()),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.save),
-            onPressed: _saveItem,
-          ),
-          IconButton(
-            icon: Icon(Icons.delete),
-            onPressed: _deleteItem,
-          ),
-        ],
+        title: Text(widget.item.name),
       ),
       body: Form(
         key: _key,
         child: Container(
+          padding: EdgeInsets.all(15),
           child: Column(
             children: <Widget>[
-              TextFormField(
-                initialValue: widget.item.name != null ? widget.item.name : '',
-                onSaved: (val) {
-                  widget.item.name = val;
-                },
-                validator: (val) {
-                  if (val.isNotEmpty) {
-                    return null;
-                  } else {
-                    return 'Please add a name';
-                  }
-                },
+              Container(
+                padding: EdgeInsets.only(bottom: 30),
+                child: Column(
+                  children: <Widget>[
+                    TextFormField(
+                      decoration: InputDecoration(labelText: "Item Name"),
+                      initialValue: widget.item.name,
+                      onSaved: (val) {
+                        widget.item.name = val;
+                      },
+                      validator: (val) {
+                        if (val.isNotEmpty) {
+                          return null;
+                        } else {
+                          return 'Please add a name';
+                        }
+                      },
+                    ),
+                    TextFormField(
+                      decoration: InputDecoration(labelText: "Quantity"),
+                      initialValue: widget.item.quantity != null
+                          ? widget.item.quantity.toString()
+                          : '',
+                      keyboardType: TextInputType.numberWithOptions(),
+                      inputFormatters: <TextInputFormatter>[
+                        WhitelistingTextInputFormatter.digitsOnly,
+                      ],
+                      onSaved: (val) {
+                        widget.item.quantity = int.parse(val);
+                      },
+                      validator: (val) {
+                        if (val != null) {
+                          if (int.parse(val) > 0) {
+                            return null;
+                          } else {
+                            return "Please add a positve number";
+                          }
+                        } else {
+                          return "Please add an amount";
+                        }
+                      },
+                    )
+                  ],
+                ),
               ),
-              Row(
-                children: <Widget>[
-                  IconButton(
-                    icon: Icon(Icons.add_circle),
-                    onPressed: () {
-                      setState(() {
-                        widget.item.quantity = 1;
-                      });
-                    },
+              Container(
+                width: double.infinity,
+                child: RaisedButton(
+                  color: Colors.teal,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15)),
+                  onPressed: _saveItem,
+                  child: Text(
+                    "Save",
+                    style: TextStyle(color: Colors.white),
                   ),
-                  Text(widget.item.quantity.toString()),
-                  IconButton(
-                      icon: Icon(Icons.do_not_disturb_on), onPressed: () {})
-                ],
+                ),
+              ),
+              Container(
+                width: double.infinity,
+                child: OutlineButton(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15)),
+                  borderSide: BorderSide(color: Colors.red, width: 2),
+                  onPressed: _deleteItem,
+                  child: Text(
+                    "Delete",
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
               ),
             ],
           ),
